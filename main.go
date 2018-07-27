@@ -55,7 +55,7 @@ func main() {
 		case <-watcher.Events:
 			log.Println("executable changed; reloading...")
 			cmd.Process.Kill()
-			time.Sleep(250 * time.Millisecond)
+			sleep(250*time.Millisecond, watcher.Events)
 		case err := <-watcher.Errors:
 			must(err, "error while watching files")
 		case err := <-exited:
@@ -68,6 +68,19 @@ func main() {
 				}
 			}
 			os.Exit(exitCode)
+		}
+	}
+}
+
+// sleep pauses the current goroutine for at least duration d, swallowing
+// all fsnotify events received in the interim.
+func sleep(d time.Duration, events chan fsnotify.Event) {
+	timer := time.After(d)
+	for {
+		select {
+		case <-events:
+		case <-timer:
+			return
 		}
 	}
 }
