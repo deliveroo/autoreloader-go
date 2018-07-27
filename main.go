@@ -19,6 +19,7 @@ func main() {
 	case "-h", "-?":
 		usage()
 	}
+	log.SetFlags(0)
 
 	var (
 		cmd  = os.Args[1]
