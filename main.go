@@ -54,10 +54,12 @@ func main() {
 		case err := <-watcher.Errors:
 			must(err, "error while watching files")
 		case err := <-exited:
-			exitCode := 1
+			var exitCode int
 			if err, ok := err.(*exec.ExitError); ok {
 				if status, ok := err.Sys().(syscall.WaitStatus); ok {
 					exitCode = status.ExitStatus()
+				} else {
+					exitCode = 1
 				}
 			}
 			os.Exit(exitCode)
