@@ -56,6 +56,10 @@ func main() {
 		case <-watcher.Events:
 			log.Println("executable changed; reloading...")
 			cmd.Process.Kill()
+
+			// Sleep for 250ms, ignoring any events received in the
+			// interim, because several events may be received when the
+			// binary changes (e.g. CHMOD, WRITE).
 			sleep(250*time.Millisecond, watcher.Events)
 		case err := <-watcher.Errors:
 			must(err, "error while watching files")
@@ -86,6 +90,8 @@ func sleep(d time.Duration, events chan fsnotify.Event) {
 	}
 }
 
+// must calls log.Fatal if the error is non-nil, prepending an optional
+// message.
 func must(err error, msg string) {
 	if err != nil {
 		s := err.Error()
@@ -96,6 +102,7 @@ func must(err error, msg string) {
 	}
 }
 
+// usage prints the usage and quits.
 func usage() {
 	fmt.Printf("usage: %s command [arguments]\n", os.Args[0])
 	os.Exit(1)
