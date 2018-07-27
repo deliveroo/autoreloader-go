@@ -72,6 +72,6 @@ func must(err error, msg string) {
 }
 
 func usage() {
-	fmt.Println("usage: autoreloader command [args...]")
+	fmt.Printf("usage: %s command [arguments]\n", os.Args[0])
 	os.Exit(1)
 }
