@@ -39,7 +39,7 @@ func main() {
 
 	for {
 		// Launch the process.
-		cmd := exec.Command(cmdFullPath, argv...)
+		cmd := exec.Command(cmd, argv...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
