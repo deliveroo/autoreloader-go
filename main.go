@@ -29,7 +29,7 @@ func main() {
 
 	// Find the full path for the command.
 	cmdFullPath, err := exec.LookPath(cmd)
-	must(err, "error looking path")
+	must(err, "")
 
 	// Start watcher.
 	watcher, err := fsnotify.NewWatcher()
@@ -88,7 +88,11 @@ func sleep(d time.Duration, events chan fsnotify.Event) {
 
 func must(err error, msg string) {
 	if err != nil {
-		log.Fatalf("%s: %v", msg, err)
+		s := err.Error()
+		if msg != "" {
+			s = msg + ": " + s
+		}
+		log.Fatal(s)
 	}
 }
 
