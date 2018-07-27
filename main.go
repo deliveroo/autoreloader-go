@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -12,14 +13,14 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		usage()
-	}
-	switch os.Args[1] {
-	case "-h", "-?":
-		usage()
-	}
 	log.SetFlags(0)
+
+	help := flag.Bool("?", false, "prints the usage")
+	flag.Usage = usage
+	flag.Parse()
+	if *help || len(os.Args) < 2 {
+		usage()
+	}
 
 	var (
 		cmd  = os.Args[1]
