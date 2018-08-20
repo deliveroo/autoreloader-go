@@ -67,6 +67,14 @@ func main() {
 			var exitCode int
 			if err, ok := err.(*exec.ExitError); ok {
 				if status, ok := err.Sys().(syscall.WaitStatus); ok {
+					if status.Signal() == syscall.SIGBUS {
+						// Retry on bus error, as these are occasionally
+						// encountered when restarting a binary hosted on a
+						// docker volume.
+						fmt.Println("retrying on bus error...")
+						sleep(250*time.Millisecond, watcher.Events)
+						continue
+					}
 					exitCode = status.ExitStatus()
 				} else {
 					exitCode = 1
