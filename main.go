@@ -13,18 +13,20 @@ import (
 )
 
 func main() {
+	var (
+		autorestart = flag.Bool("autorestart", false, "automatically restarts the binary upon non-zero exit code")
+		help        = flag.Bool("?", false, "prints the usage")
+	)
 	log.SetFlags(0)
-
-	help := flag.Bool("?", false, "prints the usage")
 	flag.Usage = usage
 	flag.Parse()
-	if *help || len(os.Args) < 2 {
+	if *help || len(flag.Args()) == 0 {
 		usage()
 	}
 
 	var (
-		cmd  = os.Args[1]
-		argv = os.Args[2:]
+		cmd  = flag.Arg(0)
+		argv = flag.Args()[1:]
 	)
 
 	// Find the full path for the command.
@@ -66,6 +68,11 @@ func main() {
 		case err := <-exited:
 			var exitCode int
 			if err, ok := err.(*exec.ExitError); ok {
+				if *autorestart {
+					fmt.Println("executable quit; reloading...")
+					sleep(250*time.Millisecond, watcher.Events)
+					continue
+				}
 				if status, ok := err.Sys().(syscall.WaitStatus); ok {
 					if status.Signal() == syscall.SIGBUS {
 						// Retry on bus error, as these are occasionally
@@ -113,5 +120,6 @@ func must(err error, msg string) {
 // usage prints the usage and quits.
 func usage() {
 	fmt.Printf("usage: %s command [arguments]\n", os.Args[0])
+	flag.PrintDefaults()
 	os.Exit(1)
 }

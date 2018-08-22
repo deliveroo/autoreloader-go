@@ -2,6 +2,9 @@
 
 ```
 usage: autoreloader-go command [arguments]
+  -?    prints the usage
+  -autorestart
+        automatically restarts the binary upon non-zero exit code
 ```
 
 Autoreloader launches the specified command, and waits for it to exit. If
