@@ -1,13 +1,17 @@
-# Autoreloader
+# autoreloader-go
+
+A small Go app for watching and reloading executables.
 
 ```
 usage: autoreloader-go command [arguments]
-  -?    prints the usage
+  -?	prints the usage
   -autorestart
-        automatically restarts the binary upon non-zero exit code
+    	automatically restarts the binary upon non-zero exit code
+  -poll
+    	use polling, not fsnotify, to monitor binary
 ```
 
-Autoreloader launches the specified command, and waits for it to exit. If
-the executable changes in that time, the process is killed and restarted.
-This is useful in a development environment to allow a service to restart
-everytime it's rebuilt.
+Autoreloader launches the specified command, and waits for it to exit. If the
+executable changes in that time, the process is killed and restarted.  This is
+useful in a development environment to allow a service to restart every time
+it's rebuilt.

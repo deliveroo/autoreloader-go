@@ -10,12 +10,16 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/radovskyb/watcher"
 )
+
+const interval = 250 * time.Millisecond
 
 func main() {
 	var (
-		autorestart = flag.Bool("autorestart", false, "automatically restarts the binary upon non-zero exit code")
-		help        = flag.Bool("?", false, "prints the usage")
+		autorestart   = flag.Bool("autorestart", false, "automatically restarts the binary upon non-zero exit code")
+		enablePolling = flag.Bool("poll", false, "use polling, not fsnotify, to monitor binary")
+		help          = flag.Bool("?", false, "prints the usage")
 	)
 	log.SetFlags(0)
 	flag.Usage = usage
@@ -33,31 +37,41 @@ func main() {
 	cmdFullPath, err := exec.LookPath(cmd)
 	must(err, "")
 
+	// Prefer polling, if enabled.
+	if *enablePolling {
+		poller := watcher.New()
+		must(poller.Add(cmdFullPath), "failed to watch")
+		go poll(cmd, argv, poller, *autorestart)
+		go must(poller.Start(interval), "poller.Start()")
+		return
+	}
+
 	// Start watcher.
 	watcher, err := fsnotify.NewWatcher()
 	must(err, "failed to create watcher")
 	defer watcher.Close()
 	must(watcher.Add(cmdFullPath), "failed to watch")
 
+	var bin *exec.Cmd
+	defer func(bin *exec.Cmd) {
+		if bin != nil {
+			must(bin.Process.Kill(), "error killing process")
+		}
+	}(bin)
+
 	for {
-		// Launch the process.
-		cmd := exec.Command(cmd, argv...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		defer cmd.Process.Kill()
-		must(cmd.Start(), "cmd.Start()")
+		bin = runCmd(cmd, argv)
 
 		// Watch for exit.
 		exited := make(chan error)
 		go func() {
-			exited <- cmd.Wait()
+			exited <- bin.Wait()
 		}()
 
 		select {
 		case <-watcher.Events:
 			log.Println("executable changed; reloading...")
-			cmd.Process.Kill()
+			_ = bin.Process.Kill()
 
 			// Sleep for 250ms, ignoring any events received in the
 			// interim, because several events may be received when the
@@ -122,4 +136,65 @@ func usage() {
 	fmt.Printf("usage: %s command [arguments]\n", os.Args[0])
 	flag.PrintDefaults()
 	os.Exit(1)
+}
+
+func runCmd(cmd string, argv []string) *exec.Cmd {
+	bin := exec.Command(cmd, argv...)
+	bin.Stdout = os.Stdout
+	bin.Stderr = os.Stderr
+	bin.Stdin = os.Stdin
+	must(bin.Start(), "bin.Start()")
+	return bin
+}
+
+func poll(cmd string, argv []string, poller *watcher.Watcher, autorestart bool) {
+	var bin *exec.Cmd
+	defer func(bin *exec.Cmd) {
+		if bin != nil {
+			must(bin.Process.Kill(), "error killing process")
+		}
+	}(bin)
+
+	for {
+		bin = runCmd(cmd, argv)
+
+		// Watch for exit.
+		exited := make(chan error)
+		go func() {
+			exited <- bin.Wait()
+		}()
+
+		select {
+		case <-poller.Event:
+			fmt.Println("executable changed; reloading...")
+			_ = bin.Process.Kill()
+			time.Sleep(250 * time.Millisecond)
+		case err := <-poller.Error:
+			must(err, "error while polling files")
+		case err := <-exited:
+			var exitCode int
+			if err, ok := err.(*exec.ExitError); ok {
+				if autorestart {
+					fmt.Println("executable quit; reloading...")
+					time.Sleep(250 * time.Millisecond)
+					continue
+				}
+				if status, ok := err.Sys().(syscall.WaitStatus); ok {
+					if status.Signal() == syscall.SIGBUS {
+						// Retry on bus error, as these are occasionally
+						// encountered when restarting a binary hosted on a
+						// docker volume.
+						fmt.Println("retrying on bus error...")
+						continue
+					}
+					exitCode = status.ExitStatus()
+				} else {
+					exitCode = 1
+				}
+			}
+			os.Exit(exitCode)
+		case <-poller.Closed:
+			return
+		}
+	}
 }
