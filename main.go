@@ -116,7 +116,10 @@ func poll(cmd string, argv []string, poller *watcher.Watcher, autorestart bool) 
 			fmt.Println("executable changed; reloading...")
 			_ = bin.Process.Kill()
 		case err := <-poller.Error:
-			must(err, "error while polling files")
+			if err != watcher.ErrWatchedFileDeleted {
+				must(err, "error while polling files")
+			}
+			time.Sleep(interval)
 		case err := <-exited:
 			var exitCode int
 			if err, ok := err.(*exec.ExitError); ok {
