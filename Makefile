@@ -11,3 +11,7 @@ install:
 .PHONY: test
 test:
 	go test -v ./...
+
+.PHONY: docker-test
+docker-test:
+	@docker build -t $(APP):latest -f Dockerfile .
