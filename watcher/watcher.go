@@ -6,6 +6,7 @@ import (
 	"os/exec"
 )
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 type Watcher interface {
 	// Add watches the given path, returning an error if the path is
 	// not valid.
