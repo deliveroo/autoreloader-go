@@ -1,5 +1,7 @@
 # autoreloader-go
 
+⚠️ ⚠️ ⚠️ **THIS TOOL IS DEPRECATED! PLEASE USE [github.com/cosmtrek/air](https://github.com/cosmtrek/air) OR SIMILAR TOOL INSTEAD.** ⚠️ ⚠️ ⚠️
+
 A small Go app for watching and reloading executables.
 
 ```

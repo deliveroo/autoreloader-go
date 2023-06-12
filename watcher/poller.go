@@ -10,6 +10,7 @@ import (
 	"github.com/radovskyb/watcher"
 )
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 type Poller struct {
 	Autorestart bool
 	Interval    time.Duration
@@ -19,6 +20,7 @@ type Poller struct {
 	watcher     *watcher.Watcher
 }
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func NewPoller(autorestart bool, interval int, cmd string, args []string) *Poller {
 	if interval == 0 {
 		interval = 250
@@ -32,6 +34,7 @@ func NewPoller(autorestart bool, interval int, cmd string, args []string) *Polle
 	}
 }
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func (p *Poller) Add(path string) error {
 	return errors.Wrapf(p.watcher.Add(path), "failed to add path %s", path)
 }
@@ -47,6 +50,7 @@ func (p *Poller) sleep(d time.Duration, events chan watcher.Event) {
 	}
 }
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func (p *Poller) Watch() {
 	for {
 		p.bin = exec.Command(p.Cmd, p.Args...)
@@ -99,10 +103,12 @@ func (p *Poller) Watch() {
 	}
 }
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func (p *Poller) Start() error {
 	return errors.Wrap(p.watcher.Start(p.Interval), "poller.Start")
 }
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func (p *Poller) Close() error {
 	p.watcher.Close()
 	return nil

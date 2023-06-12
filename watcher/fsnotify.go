@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Deprecated: pluease use github.com/cosmtrek/air or another tool instead.
 type Notifier struct {
 	Autorestart bool
 	Interval    time.Duration
@@ -22,6 +23,8 @@ type Notifier struct {
 
 // NewNotifier returns a Notifier with the given parameters, using
 // fsnotify as the underlying watcher.
+//
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func NewNotifier(autorestart bool, interval int, cmd string, args []string) (*Notifier, error) {
 	if interval == 0 {
 		interval = 250
@@ -41,6 +44,8 @@ func NewNotifier(autorestart bool, interval int, cmd string, args []string) (*No
 }
 
 // Add returns an error if the given path is invalid.
+//
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func (n *Notifier) Add(path string) error {
 	return errors.Wrapf(n.watcher.Add(path), "failed to add path %s", path)
 }
@@ -57,6 +62,7 @@ func (n *Notifier) sleep(d time.Duration, events chan fsnotify.Event) {
 	}
 }
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func (n *Notifier) Watch() {
 	for {
 		n.bin = exec.Command(n.Cmd, n.Args...)
@@ -104,6 +110,7 @@ func (n *Notifier) Watch() {
 	}
 }
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func (n *Notifier) Start() error {
 	for range n.done {
 		return nil
@@ -111,6 +118,7 @@ func (n *Notifier) Start() error {
 	return nil
 }
 
+// Deprecated: please use github.com/cosmtrek/air or another tool instead.
 func (n *Notifier) Close() error {
 	n.watcher.Close()
 	return nil
